@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { authAPI } from '@/lib/api';
 import Link from 'next/link';
@@ -17,8 +17,13 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [testimonialIdx] = useState(() => Math.floor(Math.random() * TESTIMONIALS.length));
+  const [testimonialIdx, setTestimonialIdx] = useState(0);
   const { login } = useAuth();
+
+  // Run randomizer only on client side to avoid SSR hydration mismatch
+  useEffect(() => {
+    setTestimonialIdx(Math.floor(Math.random() * TESTIMONIALS.length));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
