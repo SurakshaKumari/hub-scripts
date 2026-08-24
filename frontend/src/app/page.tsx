@@ -66,6 +66,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Spotlight Background */}
+      <div className="absolute inset-0 bg-red-950/10 z-0 pointer-events-none" />
       <div className="spotlight-top" />
 
       {/* ─── Hero Section ────────────────────────────────────────── */}
@@ -98,7 +99,7 @@ export default function HomePage() {
             Browse Scripts
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
           </Link>
-          <Link href="/submit" className="glass-panel w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-zinc-200 hover:text-white hover:bg-white/5 transition-all text-lg border-white/10 shadow-lg">
+          <Link href="/submit" className="btn-pink w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-white shadow-2xl flex items-center justify-center gap-2 text-lg">
             Upload Script
           </Link>
         </div>
@@ -226,7 +227,7 @@ export default function HomePage() {
           <p className="text-xl text-zinc-400 mb-10 max-w-2xl mx-auto leading-relaxed">
             Stop dealing with crashes and bans. Access our curated list of premium and free executors guaranteed to work with every script on our platform.
           </p>
-          <Link href="/executors" className="btn-premium inline-flex items-center gap-2 px-10 py-5 rounded-2xl font-bold text-white text-lg shadow-[0_0_40px_rgba(225,29,72,0.3)]">
+          <Link href="/executors" className="btn-pink inline-flex items-center gap-2 px-10 py-5 rounded-2xl font-bold text-white text-lg shadow-[0_0_40px_rgba(233,30,99,0.3)]">
             Explore Executors
           </Link>
         </div>

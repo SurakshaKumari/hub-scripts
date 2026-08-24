@@ -34,34 +34,41 @@ async function main() {
     createdUsers.push(await prisma.user.create({ data: user }));
   }
 
+  const executorsList = ['Synapse X', 'Krnl', 'Fluxus', 'Electron', 'Oxygen U', 'Comet', 'JJSploit', 'Script-Ware', 'Celery', 'Hydrogen'];
   const executors = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < executorsList.length; i++) {
     executors.push({
-      name: faker.software.name ? faker.software.name() : faker.company.name(),
-      description: faker.lorem.sentence(),
-      imageUrl: faker.image.url(),
+      name: executorsList[i],
+      description: `The best executor for Roblox. ${faker.lorem.sentence()}`,
+      imageUrl: `https://picsum.photos/seed/${faker.string.alphanumeric(10)}/800/600`,
       downloadUrl: faker.internet.url(),
-      isVerified: faker.datatype.boolean(),
-      isFeatured: faker.datatype.boolean(),
+      isVerified: true,
+      isFeatured: i < 3,
     });
   }
   await prisma.executor.createMany({ data: executors });
 
+  const games = ['Blox Fruits', 'Arsenal', 'Adopt Me!', 'Jailbreak', 'Murder Mystery 2', 'Pet Simulator X', 'King Legacy', 'Da Hood', 'BedWars', 'Tower of Hell'];
+  const scriptTypes = ['Auto Farm', 'Aimbot', 'ESP', 'Infinite Jump', 'Speed Hack', 'Kill All', 'Auto Quest', 'God Mode', 'Money Glitch', 'Item Dupe'];
+  const categories = ['Combat', 'Farming', 'Minigame', 'Utility', 'Movement', 'Visuals'];
+
   const scripts = [];
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 50; i++) {
+    const game = faker.helpers.arrayElement(games);
+    const scriptType = faker.helpers.arrayElement(scriptTypes);
     const script = await prisma.script.create({
       data: {
-        title: faker.word.words(3),
-        description: faker.lorem.paragraph(),
-        code: `print("Hello World ${i}")`,
-        game: faker.word.words(2),
-        category: 'General',
-        thumbnailUrl: faker.image.url(),
+        title: `${game} - ${scriptType} Script 2026`,
+        description: `This is a highly advanced script for ${game} featuring ${scriptType} and many more features. Completely keyless and undetected.\n\nFeatures:\n- ${scriptType}\n- Anti-Ban\n- Clean UI`,
+        code: `print("Loaded ${scriptType} for ${game}")\n-- Awesome script logic here\nwhile true do wait(1) print("farming...") end`,
+        game: game,
+        category: faker.helpers.arrayElement(categories),
+        thumbnailUrl: `https://picsum.photos/seed/${faker.string.alphanumeric(10)}/800/600`,
         status: 'approved',
-        isVerified: faker.datatype.boolean(),
-        isBumped: faker.datatype.boolean(),
-        isKeyless: faker.datatype.boolean(),
-        viewCount: faker.number.int({ min: 0, max: 1000 }),
+        isVerified: faker.datatype.boolean(0.8), // 80% verified
+        isBumped: faker.datatype.boolean(0.3),
+        isKeyless: faker.datatype.boolean(0.6),
+        viewCount: faker.number.int({ min: 50, max: 50000 }),
         authorId: createdUsers[faker.number.int({ min: 0, max: 9 })].id,
       }
     });
