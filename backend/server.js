@@ -21,6 +21,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 const allowedOrigins = [
   'http://localhost:3000',
+  'https://hub-scripts-tan.vercel.app',
   ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map(o => o.trim()) : []),
 ];
 
