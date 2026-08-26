@@ -69,7 +69,7 @@ function ExecutorCard({ executor }: { executor: Executor }) {
 export default function ExecutorsPage() {
   const [executors, setExecutors] = useState<Executor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'verified' | 'featured'>('all');
+  const [filter, setFilter] = useState<'all' | 'verified' | 'featured' | 'newest' | 'popular'>('all');
 
   useEffect(() => {
     executorAPI.getAll()
@@ -84,8 +84,20 @@ export default function ExecutorsPage() {
     return true;
   });
 
-  // Sort: featured first, then verified, then rest
+  // Sort based on active tab
   const sorted = [...filtered].sort((a, b) => {
+    if (filter === 'newest') {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+    if (filter === 'popular') {
+      // Featured + verified first as proxy for popularity
+      if (a.isFeatured && !b.isFeatured) return -1;
+      if (!a.isFeatured && b.isFeatured) return 1;
+      if (a.isVerified && !b.isVerified) return -1;
+      if (!a.isVerified && b.isVerified) return 1;
+      return 0;
+    }
+    // Default sort: featured first, then verified
     if (a.isFeatured && !b.isFeatured) return -1;
     if (!a.isFeatured && b.isFeatured) return 1;
     if (a.isVerified && !b.isVerified) return -1;
@@ -117,15 +129,17 @@ export default function ExecutorsPage() {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex gap-2 mb-8">
+        <div className="flex flex-wrap gap-2 mb-8">
           {[
-            { key: 'all', label: 'All Executors' },
-            { key: 'verified', label: '✓ Verified Only' },
+            { key: 'all', label: '⚙ All Executors' },
             { key: 'featured', label: '★ Featured' },
+            { key: 'verified', label: '✓ Verified Only' },
+            { key: 'popular', label: '🔥 Most Popular' },
+            { key: 'newest', label: '🆕 Newest' },
           ].map(tab => (
             <button
               key={tab.key}
-              onClick={() => setFilter(tab.key as 'all' | 'verified' | 'featured')}
+              onClick={() => setFilter(tab.key as 'all' | 'verified' | 'featured' | 'newest' | 'popular')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                 filter === tab.key
                   ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'

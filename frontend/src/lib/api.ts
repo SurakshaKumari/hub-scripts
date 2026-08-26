@@ -10,6 +10,7 @@ export const scriptAPI = {
   getAll: (params?: Record<string, string | number | boolean>) => api.get('/scripts', { params }),
   getFeatured: () => api.get('/scripts/featured'),
   getTrending: () => api.get('/scripts/trending'),
+  getTopGames: (limit = 6) => api.get('/scripts/top-games', { params: { limit } }),
   getById: (id: string) => api.get(`/scripts/${id}`),
   create: (data: Record<string, unknown>) => api.post('/scripts', data),
   update: (id: string, data: Record<string, unknown>) => api.put(`/scripts/${id}`, data),

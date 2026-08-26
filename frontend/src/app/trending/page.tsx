@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { scriptAPI } from '@/lib/api';
+import ScriptCard from '@/components/ScriptCard';
 
 interface TrendingScript {
   id: string;
@@ -19,15 +19,16 @@ interface TrendingScript {
   _count: { votes: number; comments: number };
 }
 
-const RANK_STYLES = [
-  'text-yellow-400 border-yellow-500/50 bg-yellow-500/10',
-  'text-gray-300 border-gray-500/50 bg-gray-500/10',
-  'text-orange-400 border-orange-500/50 bg-orange-500/10',
-];
+type SortMode = 'views' | 'votes' | 'newest';
 
 export default function TrendingPage() {
   const [scripts, setScripts] = useState<TrendingScript[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterKeyless, setFilterKeyless] = useState(false);
+  const [filterVerified, setFilterVerified] = useState(false);
+  const [filterBumped, setFilterBumped] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>('views');
+  const [sortDesc, setSortDesc] = useState(true);
 
   useEffect(() => {
     scriptAPI.getTrending()
@@ -36,111 +37,145 @@ export default function TrendingPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Apply filters
+  let displayed = scripts.filter(s => {
+    if (filterKeyless && !s.isKeyless) return false;
+    if (filterVerified && !s.isVerified) return false;
+    if (filterBumped && !s.isBumped) return false;
+    return true;
+  });
+
+  // Apply sort
+  displayed = [...displayed].sort((a, b) => {
+    let diff = 0;
+    if (sortMode === 'views') diff = b.viewCount - a.viewCount;
+    else if (sortMode === 'votes') diff = (b._count.votes) - (a._count.votes);
+    return sortDesc ? diff : -diff;
+  });
+
+  const SORT_LABEL: Record<SortMode, string> = {
+    views: 'Most Viewed',
+    votes: 'Most Voted',
+    newest: 'Newest',
+  };
+
   return (
-    <div className="bg-[#0a0a0a] min-h-screen">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-red-950/40 to-transparent border-b border-gray-900">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-red-600/5 rounded-full blur-[80px] pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
-          <div className="inline-flex items-center gap-2 bg-red-600/10 border border-red-600/20 rounded-full px-4 py-1.5 text-sm text-red-400 mb-4">
-            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            Updated hourly
+    <div className="min-h-screen bg-[#101012] text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-white">🔥 Trending Scripts</h1>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-2">
-            🔥 Trending Scripts
-          </h1>
-          <p className="text-gray-500">The hottest Roblox scripts ranked by views and engagement</p>
+          <p className="text-zinc-400 max-w-3xl">
+            Browse the hottest Roblox scripts updated for 2026, featuring completely free, keyless and mobile-friendly options.
+          </p>
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {loading ? (
-          <div className="space-y-3">
-            {Array(10).fill(0).map((_, i) => (
-              <div key={i} className="bg-[#141414] rounded-xl border border-gray-800 p-5 animate-pulse">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#222] rounded-xl" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-[#222] rounded w-1/2" />
-                    <div className="h-3 bg-[#1a1a1a] rounded w-1/3" />
-                  </div>
-                  <div className="w-16 h-8 bg-[#222] rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : scripts.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">📊</div>
-            <p className="text-gray-500 text-lg font-semibold">No trending data yet</p>
-            <p className="text-gray-600 text-sm mt-1">Check back once scripts have been viewed</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {scripts.map((script, i) => (
-              <Link
-                key={script.id}
-                href={`/scripts/${script.id}`}
-                className={`flex items-center gap-4 bg-[#141414] border rounded-xl p-4 hover:border-red-600/40 transition-all group ${
-                  i === 0 ? 'border-yellow-600/30 hover:border-yellow-500/50' : 'border-gray-800'
-                }`}
-              >
-                {/* Rank */}
-                <div className={`w-12 h-12 rounded-xl border flex-shrink-0 flex items-center justify-center font-black text-lg ${
-                  i < 3 ? RANK_STYLES[i] : 'text-gray-600 border-gray-800 bg-[#1a1a1a]'
-                }`}>
-                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-red-500 font-semibold">{script.game}</span>
-                    {script.isVerified && (
-                      <span className="text-xs text-green-400 border border-green-700/50 px-1.5 py-0.5 rounded-full">✓</span>
-                    )}
-                    {script.isKeyless && (
-                      <span className="text-xs text-blue-400 border border-blue-700/50 px-1.5 py-0.5 rounded-full">🔓</span>
-                    )}
-                  </div>
-                  <h3 className="text-white font-bold text-sm group-hover:text-red-400 transition-colors truncate">
-                    {script.title}
-                  </h3>
-                  <div className="text-gray-600 text-xs mt-0.5">by {script.author.username}</div>
-                </div>
-
-                {/* Stats */}
-                <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                  <div className="flex items-center gap-1 text-sm font-bold text-white">
-                    <span className="text-gray-600 text-xs">👁</span>
-                    <span className={i === 0 ? 'text-yellow-400' : i < 3 ? 'text-gray-300' : 'text-gray-400'}>
-                      {script.viewCount >= 1000 ? `${(script.viewCount / 1000).toFixed(1)}k` : script.viewCount}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <span>👍 {script._count.votes}</span>
-                    <span>💬 {script._count.comments}</span>
-                  </div>
-                </div>
-
-                {/* Arrow */}
-                <div className="text-gray-700 group-hover:text-red-500 transition-colors text-lg flex-shrink-0">›</div>
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* Bottom CTA */}
-        {!loading && scripts.length > 0 && (
-          <div className="mt-10 text-center">
-            <Link
-              href="/scripts"
-              className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-red-600/20 hover:shadow-red-600/40"
+        {/* Filters Section */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-4 border-b border-white/5">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* No Key filter */}
+            <button
+              onClick={() => setFilterKeyless(v => !v)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                filterKeyless
+                  ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
+                  : 'bg-[#1a1a1c] hover:bg-[#252528] text-zinc-300 hover:text-white'
+              }`}
             >
-              Browse All Scripts →
-            </Link>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4v-4l5.659-5.659C9.098 10.743 9 9.5 9 8a6 6 0 016-6z" /></svg>
+              No Key
+            </button>
+
+            {/* Mobile Support filter */}
+            <button
+              onClick={() => setFilterBumped(v => !v)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                filterBumped
+                  ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
+                  : 'bg-[#1a1a1c] hover:bg-[#252528] text-zinc-300 hover:text-white'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+              Featured
+            </button>
+
+            {/* Verified filter */}
+            <button
+              onClick={() => setFilterVerified(v => !v)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                filterVerified
+                  ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
+                  : 'bg-[#1a1a1c] hover:bg-[#252528] text-zinc-300 hover:text-white'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              Verified
+            </button>
+
+            {/* Sort mode cycles */}
+            <button
+              onClick={() => {
+                const modes: SortMode[] = ['views', 'votes', 'newest'];
+                const idx = modes.indexOf(sortMode);
+                setSortMode(modes[(idx + 1) % modes.length]);
+              }}
+              className="flex items-center gap-2 bg-[#1a1a1c] hover:bg-[#252528] text-zinc-300 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition-all"
+            >
+              🔀 {SORT_LABEL[sortMode]}
+            </button>
+          </div>
+
+          {/* Sort direction toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSortDesc(v => !v)}
+              className="flex items-center gap-2 bg-[#1a1a1c] hover:bg-[#252528] text-zinc-300 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition-all"
+            >
+              {sortDesc ? 'Highest to Lowest' : 'Lowest to Highest'}
+              <svg className={`w-4 h-4 transition-transform ${sortDesc ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Results count */}
+        {!loading && (
+          <div className="text-zinc-500 text-sm">
+            Showing <span className="text-zinc-300 font-semibold">{displayed.length}</span> script{displayed.length !== 1 ? 's' : ''}
+            {(filterKeyless || filterVerified || filterBumped) && (
+              <button
+                onClick={() => { setFilterKeyless(false); setFilterVerified(false); setFilterBumped(false); }}
+                className="ml-2 text-red-400 hover:text-red-300 underline text-xs"
+              >
+                Clear filters
+              </button>
+            )}
           </div>
         )}
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {loading ? (
+            Array(12).fill(0).map((_, i) => (
+              <div key={i} className="h-48 bg-[#1a1a1c] rounded-xl border border-white/5 animate-pulse" />
+            ))
+          ) : displayed.length === 0 ? (
+            <div className="col-span-4 text-center py-20 text-zinc-500">
+              <div className="text-4xl mb-3">🔍</div>
+              <p className="font-semibold">No scripts match your filters</p>
+              <button
+                onClick={() => { setFilterKeyless(false); setFilterVerified(false); setFilterBumped(false); }}
+                className="mt-3 text-red-400 hover:text-red-300 text-sm underline"
+              >
+                Clear all filters
+              </button>
+            </div>
+          ) : (
+            displayed.map(script => <ScriptCard key={script.id} {...script} />)
+          )}
+        </div>
+
       </div>
     </div>
   );

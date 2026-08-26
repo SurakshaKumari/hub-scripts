@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import { usePathname } from 'next/navigation';
+import SearchModal from './SearchModal';
 
 interface Notification {
   id: string;
@@ -19,6 +20,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
 
@@ -63,20 +65,17 @@ export default function Navbar() {
     { href: '/scripts', label: 'Browse' },
     { href: '/trending', label: 'Trending', hot: true },
     { href: '/executors', label: 'Executors' },
-    { href: '/submit', label: 'Submit' },
   ];
 
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href));
-
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isHome = pathname === '/';
-
   if (isAuthPage) return null;
 
   return (
     <>
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
+        scrolled || !isHome
           ? 'bg-black/40 backdrop-blur-2xl border-b border-white/5'
           : 'bg-transparent border-b border-transparent'
       }`}>
@@ -117,11 +116,11 @@ export default function Navbar() {
 
             {/* Desktop right side */}
             <div className="hidden md:flex items-center space-x-4">
-              <Link href="/scripts" className="text-zinc-400 hover:text-white transition-colors" title="Search">
+              <button onClick={() => setSearchOpen(true)} className="text-zinc-400 hover:text-white transition-colors" title="Search">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
-              </Link>
+              </button>
 
               {user ? (
                 <>
@@ -236,8 +235,11 @@ export default function Navbar() {
         </div>
       )}
       
-      {/* Spacer for non-home pages so content doesn't slide under fixed navbar */}
-      {!isHome && <div className="h-20 pointer-events-none" aria-hidden="true" />}
+      {/* Search Modal */}
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      
+      {/* Spacer for all pages so content doesn't slide under fixed navbar */}
+      <div className="h-20 pointer-events-none" aria-hidden="true" />
     </>
   );
 }

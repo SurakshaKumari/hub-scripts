@@ -7,7 +7,6 @@ export default function Footer() {
     { href: '/scripts', label: 'Browse Scripts' },
     { href: '/trending', label: 'Trending' },
     { href: '/executors', label: 'Executors' },
-    { href: '/submit', label: 'Submit Script' },
   ];
 
   const account = [

@@ -185,4 +185,30 @@ const getUserScripts = async (req, res) => {
   }
 };
 
-module.exports = { getScripts, getTrendingScripts, getFeaturedScripts, getScriptById, createScript, updateScript, deleteScript, getUserScripts };
+// @desc    Get top games by script count
+// @route   GET /api/scripts/top-games
+// @access  Public
+const getTopGames = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 6;
+    const grouped = await prisma.script.groupBy({
+      by: ['game'],
+      where: { status: 'approved' },
+      _count: { game: true },
+      orderBy: { _count: { game: 'desc' } },
+      take: limit,
+    });
+
+    const games = grouped.map(g => ({
+      game: g.game,
+      count: g._count.game,
+    }));
+
+    res.json(games);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = { getScripts, getTrendingScripts, getFeaturedScripts, getScriptById, createScript, updateScript, deleteScript, getUserScripts, getTopGames };
